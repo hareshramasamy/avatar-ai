@@ -10,3 +10,6 @@ python-multipart
 httpx
 tiktoken
 pinecone
+boto3
+bcrypt
+python-jose[cryptography]
