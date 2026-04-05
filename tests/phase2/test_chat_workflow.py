@@ -71,7 +71,7 @@ else:
         raise SystemExit(1)
 
 print(f"       user_id    = {user_id}")
-print(f"       embed_token = {embed_token[:12]}...")
+print(f"       embed_token = {embed_token}")
 
 headers = {"Authorization": f"Bearer {access_token}"}
 
