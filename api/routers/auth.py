@@ -40,6 +40,7 @@ def signup(req: SignupRequest):
         email=req.email,
         password_hash=password_hash,
         embed_token_hash=hash_token(embed_token),
+        github_username=req.github_username,
     )
 
     access_token = create_access_token(user_id)

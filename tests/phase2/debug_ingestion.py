@@ -18,6 +18,7 @@ from ingestion.chunker import chunk_text
 from ingestion.embedder import embed_texts
 from ingestion.store import upsert_chunks, query_chunks
 from ingestion.pipeline import ingest_document
+from ingestion.sources.github import fetch_live_github_stats
 
 TEST_USER_ID = "debug_user_001"
 TEST_TEXT = (
@@ -103,6 +104,25 @@ metadata2 = {"user_id": TEST_USER_ID, "doc_id": "debug_doc_002", "filename": "pi
 result = asyncio.run(ingest_document(TEST_USER_ID, "text", TEST_TEXT, metadata2))
 print(f"  Chunks ingested: {result}")
 assert result and result > 0, "FAIL: pipeline returned 0 chunks"
+print("  PASS")
+
+
+# ── 7. Live GitHub fetch ──────────────────────────────────────────────────────
+section("7. fetch_live_github_stats")
+GITHUB_USERNAME = "hareshramasamy"
+result = asyncio.run(fetch_live_github_stats(GITHUB_USERNAME))
+print(f"  Username      : {result['username']}")
+print(f"  Repos returned: {len(result['recent_repos'])}")
+assert len(result["recent_repos"]) > 0, "FAIL: no repos returned"
+for r in result["recent_repos"][:3]:
+    print(f"  - {r['name']} ({r['language']}) — last pushed {r['last_pushed'][:10]}")
+print("  PASS")
+
+
+# ── 8. Cleanup ────────────────────────────────────────────────────────────────
+section("8. Cleanup — delete debug namespace from Pinecone")
+index.delete(delete_all=True, namespace=f"user_{TEST_USER_ID}")
+print(f"  Deleted all vectors in namespace 'user_{TEST_USER_ID}'")
 print("  PASS")
 
 

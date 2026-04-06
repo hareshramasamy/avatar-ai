@@ -5,7 +5,7 @@ def get_table():
     dynamodb = boto3.resource("dynamodb", region_name=os.getenv("AWS_REGION", "us-east-2"))
     return dynamodb.Table("avatar-users")
 
-def create_user(user_id: str, name: str, slug: str, email: str, password_hash: str, embed_token_hash: str):
+def create_user(user_id: str, name: str, slug: str, email: str, password_hash: str, embed_token_hash: str, github_username: str):
     get_table().put_item(Item={
         "user_id": user_id,
         "name": name,
@@ -13,6 +13,7 @@ def create_user(user_id: str, name: str, slug: str, email: str, password_hash: s
         "email": email,
         "password_hash": password_hash,
         "embed_token_hash": embed_token_hash,
+        "github_username": github_username,
     })
 
 def get_user_by_email(email: str) -> dict | None:

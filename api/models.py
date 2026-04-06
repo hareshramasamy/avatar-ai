@@ -2,9 +2,10 @@ from pydantic import BaseModel
 
 class SignupRequest(BaseModel):
     name: str
-    slug: str 
+    slug: str
     email: str
     password: str
+    github_username: str
 
 class LoginRequest(BaseModel):
     email: str

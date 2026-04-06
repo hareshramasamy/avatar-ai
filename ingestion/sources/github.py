@@ -62,3 +62,37 @@ async def fetch_all_github_projects(profile_url: str) -> str:
             combined += f"\nREADME:\n{readme}\n"
         combined += "\n"
     return combined.strip()
+
+async def fetch_live_github_stats(username: str) -> dict:
+    """
+    Fetch a lean structured summary of a user's recent GitHub activity.
+    Returns only what the LLM needs — no full READMEs.
+    """
+    token = os.getenv("GITHUB_TOKEN")
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        **({"Authorization": f"Bearer {token}"} if token else {})
+    }
+
+    async with httpx.AsyncClient(headers=headers) as client:
+        repos_res = await client.get(
+            f"https://api.github.com/users/{username}/repos",
+            params={"per_page": 10, "sort": "pushed"}
+        )
+        repos_res.raise_for_status()
+        repos = repos_res.json()
+
+    return {
+        "username": username,
+        "recent_repos": [
+            {
+                "name": r["name"],
+                "description": r["description"] or "No description",
+                "language": r["language"],
+                "stars": r["stargazers_count"],
+                "last_pushed": r["pushed_at"],
+                "url": r["html_url"]
+            }
+            for r in repos
+        ]
+    }

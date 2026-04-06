@@ -20,6 +20,7 @@ TEST_USER = {
     "slug": "haresh",
     "email": "haresh_test@example.com",
     "password": "testpassword123",
+    "github_username": "hareshramasamy",
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -98,9 +99,24 @@ if ok:
     time.sleep(5)
 
 
-# ── 5. Chat – basic question ──────────────────────────────────────────────────
+# ── 5. Upload GitHub profile ─────────────────────────────────────────────────
 
-print("\n=== 5. Chat — basic question ===")
+print("\n=== 5. Upload GitHub profile (static ingestion) ===")
+r = requests.post(
+    f"{BASE_URL}/users/{user_id}/documents",
+    headers=headers,
+    data={"github_profile_url": f"https://github.com/{TEST_USER['github_username']}"},
+)
+ok, github_doc_data = check("POST /users/{user_id}/documents (github_profile)", r)
+if ok:
+    print(f"       doc_id = {github_doc_data.get('doc_id')}")
+    print("       Waiting 10s for async GitHub ingestion to complete...")
+    time.sleep(10)
+
+
+# ── 6. Chat – basic question ──────────────────────────────────────────────────
+
+print("\n=== 6. Chat — basic question ===")
 r = requests.post(f"{BASE_URL}/chat", json={
     "embed_token": embed_token,
     "message": "What are your main technical skills?",
@@ -111,9 +127,9 @@ if ok:
     print(f"\n   Response:\n   {chat_data['response']}\n")
 
 
-# ── 6. Chat – multi-turn (history passed) ────────────────────────────────────
+# ── 7. Chat – multi-turn (history passed) ────────────────────────────────────
 
-print("\n=== 6. Chat — multi-turn with history ===")
+print("\n=== 7. Chat — multi-turn with history ===")
 history = [
     {"role": "user", "content": "What are your main technical skills?"},
     {"role": "assistant", "content": chat_data.get("response", "")},
@@ -128,9 +144,9 @@ if ok:
     print(f"\n   Response:\n   {chat_data2['response']}\n")
 
 
-# ── 7. Chat – unknown question (triggers record_unknown_question tool) ────────
+# ── 8. Chat – unknown question (triggers record_unknown_question tool) ────────
 
-print("\n=== 7. Chat — unknown question ===")
+print("\n=== 8. Chat — unknown question ===")
 r = requests.post(f"{BASE_URL}/chat", json={
     "embed_token": embed_token,
     "message": "What is your favourite recipe for pasta?",
@@ -139,6 +155,19 @@ r = requests.post(f"{BASE_URL}/chat", json={
 ok, chat_data3 = check("POST /chat (unknown question)", r)
 if ok:
     print(f"\n   Response:\n   {chat_data3['response']}\n")
+
+
+# ── 9. Chat – live GitHub fetch ───────────────────────────────────────────────
+
+print("\n=== 9. Chat — live GitHub fetch ===")
+r = requests.post(f"{BASE_URL}/chat", json={
+    "embed_token": embed_token,
+    "message": "What have you been working on recently?",
+    "history": [],
+})
+ok, chat_data4 = check("POST /chat (recent projects — triggers fetch_live_github_stats)", r)
+if ok:
+    print(f"\n   Response:\n   {chat_data4['response']}\n")
 
 
 print("\n=== Done ===")
