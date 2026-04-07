@@ -1,5 +1,5 @@
 import boto3
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
 import os
 
 def get_table():
@@ -105,7 +105,23 @@ def save_unanswered_question(user_id: str, question_id: str, question: str, aske
 
 def list_unanswered_questions(user_id: str) -> list:
     result = _unanswered_table().query(
-        KeyConditionExpression=Key("user_id").eq(user_id)
+        KeyConditionExpression=Key("user_id").eq(user_id),
+        FilterExpression=Attr("status").not_exists() | Attr("status").eq("unanswered")
+    )
+    return result.get("Items", [])
+
+def mark_question_answered(user_id: str, question_id: str, answer: str, doc_id: str, answered_at: str):
+    _unanswered_table().update_item(
+        Key={"user_id": user_id, "question_id": question_id},
+        UpdateExpression="SET #s = :s, answer = :a, doc_id = :d, answered_at = :t",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":s": "answered", ":a": answer, ":d": doc_id, ":t": answered_at}
+    )
+
+def list_answered_questions(user_id: str) -> list:
+    result = _unanswered_table().query(
+        KeyConditionExpression=Key("user_id").eq(user_id),
+        FilterExpression=Attr("status").eq("answered")
     )
     return result.get("Items", [])
 

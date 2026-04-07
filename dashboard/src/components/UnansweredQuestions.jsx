@@ -12,6 +12,7 @@ export default function UnansweredQuestions() {
   const [answers, setAnswers] = useState({}) // id -> string
   const [submitting, setSubmitting] = useState({}) // id -> boolean
   const [submitErrors, setSubmitErrors] = useState({}) // id -> string
+  const [dismissing, setDismissing] = useState({}) // id -> boolean
 
   useEffect(() => {
     async function fetchQuestions() {
@@ -33,6 +34,16 @@ export default function UnansweredQuestions() {
 
   function updateAnswer(id, val) {
     setAnswers(prev => ({ ...prev, [id]: val }))
+  }
+
+  async function handleDismiss(id) {
+    setDismissing(prev => ({ ...prev, [id]: true }))
+    try {
+      await api.delete(`/users/${userId}/unanswered/${id}`)
+      setQuestions(prev => prev.filter(q => q.question_id !== id))
+    } finally {
+      setDismissing(prev => ({ ...prev, [id]: false }))
+    }
   }
 
   async function handleSubmit(id) {
@@ -78,6 +89,13 @@ export default function UnansweredQuestions() {
                     {new Date(q.asked_at).toLocaleDateString()}
                   </span>
                 )}
+                <button
+                  onClick={() => handleDismiss(q.question_id)}
+                  disabled={dismissing[q.question_id]}
+                  style={styles.dismissBtn}
+                >
+                  {dismissing[q.question_id] ? '…' : 'Dismiss'}
+                </button>
                 <button
                   onClick={() => toggleOpen(q.question_id)}
                   style={styles.answerBtn}
@@ -160,6 +178,15 @@ const styles = {
   date: {
     fontSize: 12,
     color: '#aaa',
+  },
+  dismissBtn: {
+    background: 'none',
+    border: '1px solid #ccc',
+    color: '#888',
+    padding: '5px 12px',
+    borderRadius: 5,
+    fontSize: 13,
+    cursor: 'pointer',
   },
   answerBtn: {
     background: 'none',

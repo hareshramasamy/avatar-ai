@@ -4,6 +4,7 @@ import KnowledgeSources from '../components/KnowledgeSources.jsx'
 import AddSource from '../components/AddSource.jsx'
 import Questionnaire from '../components/Questionnaire.jsx'
 import UnansweredQuestions from '../components/UnansweredQuestions.jsx'
+import AnsweredQuestions from '../components/AnsweredQuestions.jsx'
 import AvatarSettings from '../components/AvatarSettings.jsx'
 import Preview from '../components/Preview.jsx'
 import EmbedSnippet from '../components/EmbedSnippet.jsx'
@@ -15,6 +16,7 @@ const NAV_ITEMS = [
   { key: 'add', label: 'Add Source' },
   { key: 'questionnaire', label: 'Questionnaire' },
   { key: 'visitor', label: 'Visitor Questions' },
+  { key: 'answered', label: 'Answered Questions' },
   { key: 'settings', label: 'Settings' },
   { key: 'preview', label: 'Preview' },
   { key: 'embed', label: 'Embed' },
@@ -45,6 +47,7 @@ export default function Dashboard() {
       case 'add': return <AddSource />
       case 'questionnaire': return <Questionnaire />
       case 'visitor': return <UnansweredQuestions />
+      case 'answered': return <AnsweredQuestions />
       case 'settings': return <AvatarSettings />
       case 'preview': return <Preview />
       case 'embed': return <EmbedSnippet />

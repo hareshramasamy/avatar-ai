@@ -5,10 +5,12 @@ from api.deps import get_current_user
 from api.db import (
     get_user_by_id, update_user_config,
     save_unanswered_question, list_unanswered_questions, delete_unanswered_question,
+    mark_question_answered, list_answered_questions,
     delete_all_documents, delete_all_unanswered, delete_user,
+    delete_document,
     get_table,
 )
-from ingestion.store import delete_user_namespace
+from ingestion.store import delete_user_namespace, delete_document_chunks
 from ingestion.pipeline import ingest_document
 import uuid
 from datetime import datetime, timezone
@@ -99,5 +101,38 @@ async def answer_question(
     metadata = {"user_id": user_id, "doc_id": doc_id, "filename": "unanswered_answer"}
     await ingest_document(user_id, "text", raw_text, metadata)
 
-    delete_unanswered_question(user_id, question_id)
+    answered_at = datetime.now(timezone.utc).isoformat()
+    mark_question_answered(user_id, question_id, body.answer, doc_id, answered_at)
     return {"resolved": question_id}
+
+
+@router.delete("/users/{user_id}/unanswered/{question_id}")
+def dismiss_question(user_id: str, question_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    delete_unanswered_question(user_id, question_id)
+    return {"dismissed": question_id}
+
+
+@router.get("/users/{user_id}/answered")
+def get_answered(user_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    questions = list_answered_questions(user_id)
+    return {"questions": sorted(questions, key=lambda q: q.get("answered_at", ""), reverse=True)}
+
+
+@router.delete("/users/{user_id}/answered/{question_id}")
+def delete_answered(user_id: str, question_id: str, current_user: dict = Depends(get_current_user)):
+    if current_user["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    questions = list_answered_questions(user_id)
+    question = next((q for q in questions if q["question_id"] == question_id), None)
+    if not question:
+        raise HTTPException(status_code=404, detail="Answered question not found")
+    doc_id = question.get("doc_id")
+    if doc_id:
+        delete_document_chunks(user_id, doc_id)
+        delete_document(user_id, doc_id)
+    delete_unanswered_question(user_id, question_id)
+    return {"deleted": question_id}
