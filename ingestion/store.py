@@ -25,3 +25,14 @@ def query_chunks(user_id: str, query_vector: list[float], top_k: int = 5) -> lis
         include_metadata=True
     )
     return [match.metadata["text"] for match in result.matches]
+
+def delete_document_chunks(user_id: str, doc_id: str):
+    """Delete all vectors for a specific document from the user's namespace."""
+    index.delete(
+        filter={"doc_id": {"$eq": doc_id}},
+        namespace=f"user_{user_id}"
+    )
+
+def delete_user_namespace(user_id: str):
+    """Delete the entire Pinecone namespace for a user."""
+    index.delete(delete_all=True, namespace=f"user_{user_id}")
