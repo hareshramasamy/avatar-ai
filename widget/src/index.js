@@ -1,7 +1,9 @@
 (function () {
   const script = document.currentScript
-  const token = script.getAttribute('data-token')
-  const apiUrl = script.getAttribute('data-api') || 'https://your-api.app-runner.aws'
+    || document.getElementById('avatar-preview-script')
+    || document.querySelector('script[data-token]')
+  const token = script && script.getAttribute('data-token')
+  const apiUrl = (script && script.getAttribute('data-api')) || 'https://your-api.app-runner.aws'
 
   if (!token) {
     console.error('Avatar widget: missing data-token attribute')
