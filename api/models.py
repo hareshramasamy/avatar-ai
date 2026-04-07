@@ -5,7 +5,6 @@ class SignupRequest(BaseModel):
     slug: str
     email: str
     password: str
-    github_username: str
 
 class LoginRequest(BaseModel):
     email: str
@@ -16,3 +15,4 @@ class AuthResponse(BaseModel):
     token_type: str = "bearer"
     user_id: str
     embed_token: str
+    name: str = ""

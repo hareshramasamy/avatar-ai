@@ -40,11 +40,10 @@ def signup(req: SignupRequest):
         email=req.email,
         password_hash=password_hash,
         embed_token_hash=hash_token(embed_token),
-        github_username=req.github_username,
     )
 
     access_token = create_access_token(user_id)
-    return AuthResponse(access_token=access_token, user_id=user_id, embed_token=embed_token)
+    return AuthResponse(access_token=access_token, user_id=user_id, embed_token=embed_token, name=req.name)
 
 @router.post("/login", response_model=AuthResponse)
 def login(req: LoginRequest):
@@ -53,5 +52,5 @@ def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     access_token = create_access_token(user["user_id"])
-    # embed_token is stored hashed — return user_id only, dashboard fetches embed_token separately
-    return AuthResponse(access_token=access_token, user_id=user["user_id"], embed_token="")
+    # embed_token is stored hashed — not retrievable on login
+    return AuthResponse(access_token=access_token, user_id=user["user_id"], embed_token="", name=user.get("name", ""))
