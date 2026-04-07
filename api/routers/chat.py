@@ -39,7 +39,7 @@ Tone and format:
 
 Answering questions:
 - For factual questions (background, skills, projects, experience): always use your tools first. Never make up facts.
-- If tools return nothing useful: use record_unknown_question, honestly say you don't have that info, and suggest the visitor reach out directly.
+- If the retrieved context does not contain a specific, accurate answer to the question — even if some related content was returned — call record_unknown_question before responding. Do not paraphrase around missing facts.
 - For completely off-topic questions (food, general trivia, world events): politely say that's outside what you can help with.
 - Do not reveal internal tool names, the underlying model, or implementation details.
 - If the visitor wants to get in touch, ask for their name and email and use record_user_details."""
@@ -49,8 +49,9 @@ def _make_record_unknown_question(user_id: str):
     @function_tool
     def record_unknown_question(question: str) -> dict:
         """
-        Record a question the avatar couldn't answer so the user can review and answer it later.
-        Always call this when you don't have enough information to answer a visitor's question.
+        Record a question the avatar couldn't answer specifically and accurately.
+        Call this whenever the retrieved context doesn't contain the exact information needed — even if related content was found.
+        Do NOT skip this tool just because some context was returned. Call it any time you cannot give a specific, grounded answer.
         """
         question_id = str(uuid.uuid4())
         asked_at = datetime.now(timezone.utc).isoformat()
@@ -114,7 +115,7 @@ async def _chat_kb_only(req: ChatRequest, config: dict):
 
 Tool usage:
 - All questions about {name} (background, skills, experience, projects, coding activity) → search_knowledge_base
-- Tools return nothing → record_unknown_question and be honest about it
+- If search_knowledge_base doesn't return a specific enough answer to the question → call record_unknown_question, be honest, and suggest reaching out directly
 - Visitor wants to connect → record_user_details"""
 
     agent = Agent(
@@ -171,7 +172,7 @@ Tool usage:
 - For ANY factual question about {name}: ALWAYS call search_knowledge_base first, no exceptions. Use a short, focused keyword query — not a full sentence.
 - For questions about projects (recent, older, at a point in time, or general): call fetch_live_github_stats to get the full repo list with timestamps. Use last_pushed dates to determine the timeline — which repos are recent vs older. Then call search_knowledge_base with the specific project name(s) to get richer descriptions.
 - Always synthesize both sources into one cohesive, natural answer. Never dump raw data.
-- If both tools return nothing useful: call record_unknown_question and be honest about it.
+- If neither tool returns a specific enough answer to the question: call record_unknown_question, be honest, and suggest reaching out directly. Related context is not enough — the answer must be directly present.
 - If the visitor wants to get in touch: collect name and email, then call record_user_details."""
 
     agent = Agent(
