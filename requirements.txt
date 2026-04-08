@@ -1,9 +1,7 @@
 python-dotenv
 openai
 openai-agents
-requests
 pypdf
-gradio
 fastapi
 uvicorn[standard]
 python-multipart
