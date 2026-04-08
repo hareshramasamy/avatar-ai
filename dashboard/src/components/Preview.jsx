@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 
 const PRIMARY = '#c8102f'
-const WIDGET_SRC = 'http://localhost:3000/widget/dist/widget.iife.js'
+const WIDGET_SRC = import.meta.env.VITE_WIDGET_URL || 'http://localhost:3000/widget/dist/widget.iife.js'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function Preview() {
   const mountedRef = useRef(false)
@@ -21,7 +22,7 @@ export default function Preview() {
     script.id = 'avatar-preview-script'
     script.src = `${WIDGET_SRC}?t=${Date.now()}`
     script.setAttribute('data-token', embedToken)
-    script.setAttribute('data-api', 'http://localhost:8000')
+    script.setAttribute('data-api', API_URL)
     script.async = true
     document.body.appendChild(script)
   }
@@ -57,8 +58,7 @@ export default function Preview() {
         <div style={styles.noteRow}>
           <span style={styles.noteDot} />
           <span style={styles.noteText}>
-            The widget is injected live into this page using your embed token. Make sure the widget server is running at{' '}
-            <code style={styles.code}>localhost:3000</code>.
+            The widget is injected live into this page using your embed token.
           </span>
         </div>
         <div style={styles.tokenRow}>
@@ -73,9 +73,8 @@ export default function Preview() {
       <div style={styles.hint}>
         <strong>Not seeing the widget?</strong> Check that:
         <ul style={styles.ul}>
-          <li>The widget build server is running (<code style={styles.code}>localhost:3000</code>)</li>
           <li>Your embed token is valid</li>
-          <li>The API server is running at <code style={styles.code}>localhost:8000</code></li>
+          <li>The API server is reachable</li>
         </ul>
       </div>
     </div>
